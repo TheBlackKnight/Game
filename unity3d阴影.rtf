@@ -1,0 +1,247 @@
+{\rtf1\ansi\ansicpg936\cocoartf1404\cocoasubrtf470
+{\fonttbl\f0\fnil\fcharset0 HelveticaNeue;\f1\fnil\fcharset134 PingFangSC-Regular;}
+{\colortbl;\red255\green255\blue255;\red38\green38\blue38;\red246\green255\blue240;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww10800\viewh8400\viewkind0
+\deftab720
+\pard\pardeftab720\sl504\partightenfactor0
+
+\f0\fs28 \cf2 \cb3 \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 using UnityEngine; \
+using UnityEngine.UI; \
+using System.Collections; \
+using System.IO; \
+using System.Collections.Generic; \
+public class test : MonoBehaviour \{ \
+\'a0\'a0 \'a0RenderTexture shadowTexture; \
+\'a0\'a0 \'a0// Use this for initialization \
+\'a0\'a0 \'a0Camera camera; \
+\'a0\'a0 \'a0Camera camera1; \
+\'a0\'a0 \'a0Shader depthShader; \
+\'a0\'a0 \'a0Projector proj; \
+\'a0\'a0 \'a0Matrix4x4 matVP; \
+\'a0\'a0 \'a0Matrix4x4 m_projMatrix; \
+\'a0\'a0 \'a0void Start () \{ \
+\'a0\'a0 \'a0 \'a0 \'a0depthShader = Shader.Find ("depthShader"); \
+\'a0\'a0 \'a0 \'a0 \'a0camera = GameObject.Find ("Main Camera").camera; \
+\
+\'a0\'a0 \'a0 \'a0 \'a0camera1 = GameObject.Find ("Camera").camera; \
+\'a0\'a0 \'a0 \'a0 \'a0//camera1.hideFlags = HideFlags.HideAndDontSave; \
+\'a0\'a0 \'a0 \'a0 \'a0camera1.enabled = false; \
+\'a0\'a0 \'a0 \'a0 \'a0//camera1.projectionMatrix = camera.projectionMatrix; \
+\'a0\'a0 \'a0 \'a0 \'a0int textureSize = 1024; \
+\'a0\'a0 \'a0 \'a0 \'a0shadowTexture = new RenderTexture(textureSize , textureSize, 0, RenderTextureFormat.ARGB32); \
+\'a0\'a0 \'a0 \'a0 \'a0shadowTexture.name = "shadowTexture" + GetInstanceID(); \
+\'a0\'a0 \'a0 \'a0 \'a0shadowTexture.isPowerOfTwo = true; \
+\'a0\'a0 \'a0 \'a0 \'a0shadowTexture.hideFlags = HideFlags.DontSave; \
+\'a0\'a0 \'a0 \'a0 \'a0camera1.targetTexture = shadowTexture; \
+\'a0\'a0 \'a0 \'a0 \'a0proj = GameObject.Find ("GameObject").GetComponent<Projector> (); \
+\'a0\'a0 \'a0 \'a0 \'a0proj.nearClipPlane = camera.nearClipPlane; \
+\'a0\'a0 \'a0 \'a0 \'a0proj.farClipPlane = camera.farClipPlane; \
+\'a0\'a0 \'a0 \'a0 \'a0proj.fieldOfView = camera.fieldOfView; \
+\'a0\'a0 \'a0 \'a0 \'a0matVP = GL.GetGPUProjectionMatrix (camera1.projectionMatrix, true) * camera1.worldToCameraMatrix; \
+\'a0\'a0 \'a0 \'a0 \'a0proj.material.SetMatrix("ShadowMatrix", matVP); \
+\'a0\'a0 \'a0 \'a0 \'a0//camera1.SetReplacementShader (Shader.Find ("depthShader"), ""); \
+\'a0\'a0 \'a0\} \
+\
+\'a0\'a0 \'a0// Update is called once per frame \
+\'a0\'a0 \'a0void Update () \{ \
+\'a0\'a0 \'a0 \'a0 \'a0CreateCameraProjecterMatrix (); \
+\'a0\'a0 \'a0 \'a0 \'a0proj.material.SetMatrix("ShadowMatrix", matVP); \
+\'a0\'a0 \'a0 \'a0 \'a0camera1.Render (); \
+\'a0\'a0 \'a0 \'a0 \'a0proj.material.SetTexture ("_ShadowTex", shadowTexture); \
+\'a0\'a0 \'a0 \'a0 \'a0//Debug.Log(camera1.worldToCameraMatrix.MultiplyPoint(GameObject.Find("wushi").transform.position)); \
+\'a0\'a0 \'a0 \'a0 \'a0if(Input.GetKey(KeyCode.A)) \
+\'a0\'a0 \'a0 \'a0 \'a0\{ \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0Texture2D myTexture2D = new Texture2D(shadowTexture.width, shadowTexture.height);\
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0RenderTexture.active = shadowTexture; \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0myTexture2D.ReadPixels(new Rect(0, 0, shadowTexture.width, shadowTexture.height), 0, 0); \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0myTexture2D.Apply(); \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0RenderTexture.active = null;; \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0File.WriteAllBytes (Application.streamingAssetsPath + "/11.png", myTexture2D.EncodeToPNG ()); \
+\'a0\'a0 \'a0 \'a0 \'a0\} \
+\
+\'a0\'a0 \'a0\} \
+\
+\'a0\'a0 \'a0public List<Transform> CharactorList; \
+\'a0\'a0 \'a0void CreateCameraProjecterMatrix() \
+\'a0\'a0 \'a0\{ \
+\'a0\'a0 \'a0 \'a0 \'a0Vector3 v3MaxPosition = -Vector3.one * 500000.0f; \
+\'a0\'a0 \'a0 \'a0 \'a0Vector3 v3MinPosition = Vector3.one * 500000.0f; \'a0 \'a0 \
+\'a0\'a0 \'a0 \'a0 \'a0for (int vertId = 0; vertId < CharactorList.Count; ++vertId) \
+\'a0\'a0 \'a0 \'a0 \'a0\{ \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0// Light view space \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0Vector3 v3Position = camera1.worldToCameraMatrix.MultiplyPoint3x4(CharactorList[vertId].position); \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0if (v3Position.x > v3MaxPosition.x) \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0\{ \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0v3MaxPosition.x = v3Position.x; \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0\} \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0if (v3Position.y > v3MaxPosition.y) \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0\{ \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0v3MaxPosition.y = v3Position.y; \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0\} \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0if (v3Position.z > v3MaxPosition.z) \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0\{ \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0v3MaxPosition.z = v3Position.z; \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0\} \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0if (v3Position.x < v3MinPosition.x) \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0\{ \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0v3MinPosition.x = v3Position.x; \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0\} \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0if (v3Position.y < v3MinPosition.y) \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0\{ \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0v3MinPosition.y = v3Position.y; \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0\} \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0if (v3Position.z < v3MinPosition.z) \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0\{ \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0v3MinPosition.z = v3Position.z; \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0\} \
+\'a0\'a0 \'a0 \'a0 \'a0\} \
+\'a0\'a0 \'a0 \'a0 \'a0Vector3 off = v3MaxPosition - v3MinPosition; \
+\'a0\'a0 \'a0 \'a0 \'a0Vector3 sizeOff = off; \
+\'a0\'a0 \'a0 \'a0 \'a0sizeOff.z = 0; \
+\'a0\'a0 \'a0 \'a0 \'a0float dis = sizeOff.magnitude; \
+\'a0\'a0 \'a0 \'a0 \'a0//CreateOrthogonalProjectMatrix (ref m_projMatrix, v3MaxPosition, v3MinPosition); \
+\'a0\'a0 \'a0 \'a0 \'a0//Debug.Log (v3MaxPosition.ToString() + v3MinPosition.ToString()); \
+\'a0\'a0 \'a0 \'a0 \'a0//Matrix4x4 m = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(1, 1, -1)); \
+\'a0\'a0 \'a0 \'a0 \'a0//camera1.projectionMatrix = m * m_projMatrix; \
+\'a0\'a0 \'a0 \'a0 \'a0camera1.orthographicSize = dis / 1.8f; \
+\'a0\'a0 \'a0 \'a0 \'a0camera1.farClipPlane = off.z + 50; \
+\'a0\'a0 \'a0 \'a0 \'a0matVP = GL.GetGPUProjectionMatrix (camera1.projectionMatrix, true) * camera1.worldToCameraMatrix; \
+\'a0\'a0 \'a0\} \
+\
+\'a0\'a0 \'a0void CreateViewMatrix(ref Matrix4x4 viewMatrix,Vector3 look,Vector3 up,Vector3 right,Vector3 pos) \
+\'a0\'a0 \'a0\{ \
+\'a0\'a0 \'a0 \'a0 \'a0look.Normalize (); \
+\'a0\'a0 \'a0 \'a0 \'a0up.Normalize (); \
+\'a0\'a0 \'a0 \'a0 \'a0right.Normalize (); \
+\'a0\'a0 \'a0 \'a0 \'a0 \
+\'a0\'a0 \'a0 \'a0 \'a0float x = -Vector3.Dot (right,pos); \
+\'a0\'a0 \'a0 \'a0 \'a0float y = -Vector3.Dot (up,pos); \
+\'a0\'a0 \'a0 \'a0 \'a0float z = -Vector3.Dot (look,pos); \
+\'a0\'a0 \'a0 \'a0 \'a0 \
+\'a0\'a0 \'a0 \'a0 \'a0viewMatrix.m00 = right.x; viewMatrix.m10 = up.x; viewMatrix.m20 = look.x; viewMatrix.m30 = 0.0f; \
+\'a0\'a0 \'a0 \'a0 \'a0viewMatrix.m01 = right.y; viewMatrix.m11 = up.y; viewMatrix.m21 = look.y; viewMatrix.m31 = 0.0f; \
+\'a0\'a0 \'a0 \'a0 \'a0viewMatrix.m02 = right.z; viewMatrix.m12 = up.z; viewMatrix.m22 = look.z; viewMatrix.m32 = 0.0f; \
+\'a0\'a0 \'a0 \'a0 \'a0viewMatrix.m03 = x; \'a0 \'a0 \'a0 viewMatrix.m13 = y; \'a0 \'a0viewMatrix.m23 = z; \'a0 \'a0 \'a0viewMatrix.m33 = 1.0f; \
+\'a0\'a0 \'a0\} \
+\
+\'a0\'a0 \'a0void CreateOrthogonalProjectMatrix(ref Matrix4x4 projectMatrix,Vector3 v3MaxInViewSpace, Vector3 v3MinInViewSpace) \
+\'a0\'a0 \'a0\{ \
+\'a0\'a0 \'a0 \'a0 \'a0float scaleX, scaleY, scaleZ; \
+\'a0\'a0 \'a0 \'a0 \'a0float offsetX, offsetY, offsetZ; \
+\'a0\'a0 \'a0 \'a0 \'a0scaleX = 2.0f / (v3MaxInViewSpace.x - v3MinInViewSpace.x); \
+\'a0\'a0 \'a0 \'a0 \'a0scaleY = 2.0f / (v3MaxInViewSpace.y - v3MinInViewSpace.y); \
+\'a0\'a0 \'a0 \'a0 \'a0offsetX = -0.5f * (v3MaxInViewSpace.x + v3MinInViewSpace.x) * scaleX; \
+\'a0\'a0 \'a0 \'a0 \'a0offsetY = -0.5f * (v3MaxInViewSpace.y + v3MinInViewSpace.y) * scaleY; \
+\'a0\'a0 \'a0 \'a0 \'a0scaleZ = 1.0f / (v3MaxInViewSpace.z - v3MinInViewSpace.z); \
+\'a0\'a0 \'a0 \'a0 \'a0offsetZ = -v3MinInViewSpace.z * scaleZ; \
+\'a0\'a0 \'a0 \'a0 \'a0 \
+\'a0\'a0 \'a0 \'a0 \'a0//
+\f1 \'c1\'d0\'be\'d8\'d5\'f3
+\f0  \
+\'a0\'a0 \'a0 \'a0 \'a0projectMatrix.m00 = scaleX; projectMatrix.m01 = 0.0f; projectMatrix.m02 = 0.0f; projectMatrix.m03 = offsetX; \
+\'a0\'a0 \'a0 \'a0 \'a0projectMatrix.m10 = 0.0f; projectMatrix.m11 = scaleY; projectMatrix.m12 = 0.0f; projectMatrix.m13 = offsetY; \
+\'a0\'a0 \'a0 \'a0 \'a0projectMatrix.m20 = 0.0f; projectMatrix.m21 = 0.0f; projectMatrix.m22 = scaleZ; projectMatrix.m23 = offsetZ; \
+\'a0\'a0 \'a0 \'a0 \'a0projectMatrix.m30 = 0.0f; projectMatrix.m31 = 0.0f; projectMatrix.m32 = 0.0f; projectMatrix.m33 = 1.0f; \
+\'a0\'a0 \'a0\} \
+\} \
+\
+\
+Shader "ShadowMap" \{ \
+\'a0\'a0 \'a0Properties \{ \
+\'a0\'a0 \'a0 \'a0 \'a0_ShadowTex ("_ShadowTex", 2D) = "gray" \{\} \
+\'a0\'a0 \'a0 \'a0 \'a0_FalloffTex ("FallOff", 2D) = "white" \{\} \
+\'a0\'a0 \'a0 \'a0 \'a0_Bias("_Bias", Range(0, 0.01)) = 0 \
+\'a0\'a0 \'a0 \'a0 \'a0_Strength("_Strength", Range(0, 0.2)) = 0.1 \
+\'a0\'a0 \'a0\} \
+\'a0\'a0 \'a0Subshader \{ \
+\'a0\'a0 \'a0 \'a0 \'a0Tags \{"Queue"="Transparent"\} \
+\'a0\'a0 \'a0 \'a0 \'a0Pass \{ \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0ZWrite Off \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0Fog \{ Color (1, 1, 1) \} \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0AlphaTest Greater 0 \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0//ColorMask RGB \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0Blend SrcAlpha OneMinusSrcAlpha \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0//Blend DstColor Zero \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0Offset -1, -1 \
+\'a0 \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0CGPROGRAM \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0#pragma vertex vert \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0#pragma fragment frag \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0#include "UnityCG.cginc" \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0struct v2f \{ \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0float4 uvShadow : TEXCOORD0; \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0float4 uvFalloff : TEXCOORD1; \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0float4 pos : SV_POSITION; \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0\}; \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0uniform float4x4 ShadowMatrix; \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0float4x4 _Projector; \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0float4x4 _ProjectorClip; \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0v2f vert (appdata_base v) \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0\{ \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0v2f o; \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0o.pos = mul (UNITY_MATRIX_MVP, v.vertex); \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0float4x4 matWVP = mul (ShadowMatrix, _Object2World); \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0o.uvShadow = mul(matWVP, v.vertex); \'a0 \'a0 \'a0 \'a0 \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0return o; \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0\} \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0sampler2D _ShadowTex; \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0sampler2D _FalloffTex; \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0float _Bias; \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0float _Strength; \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0fixed4 frag (v2f i) : SV_Target \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0\{ \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0half2 uv = i.uvShadow.xy / i.uvShadow.w * 0.5 + 0.5; \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0#if UNITY_UV_STARTS_AT_TOP \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0uv.y = 1 - uv.y; \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0#endif \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 fixed4 res = fixed4(0, 0, 0, 0); \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 //float shadowz = i.uvShadow.z / i.uvShadow.w; \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 float pad = 888; \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 fixed4 texS = tex2D(_ShadowTex, uv); \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 if(texS.a > 0) \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \{ \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 res.a += _Strength; \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \} \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 //float3 kDecodeDot = float3(1.0, 1/255.0, 1/65025.0); \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0//float z = dot(texS.gba, kDecodeDot); \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0//float flag = 1; \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 //if(texS.r == 1) \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 //\{ \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 // \'a0 \'a0flag = -1; \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 //\} \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 //if(shadowz - _Bias> z * flag) \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 //\{ \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 //res.a += _Strength; \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 //\} \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 texS = tex2D(_ShadowTex, uv + half2(-0.94201624/pad, -0.39906216/pad)); \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 if(texS.a > 0) \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \{ \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 res.a += _Strength; \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \} \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 texS = tex2D(_ShadowTex, uv + half2(0.94558609/pad, -0.76890725/pad)); \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 if(texS.a > 0) \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \{ \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 res.a += _Strength; \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \} \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 texS = tex2D(_ShadowTex, uv + half2(-0.094184101/pad, -0.92938870/pad)); \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 if(texS.a > 0) \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \{ \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 res.a += _Strength; \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \} \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 texS = tex2D(_ShadowTex, uv + half2(0.34495938/pad, 0.29387760/pad)); \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 if(texS.a > 0) \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \{ \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 res.a += _Strength; \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \} \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0 \'a0return res; \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0\} \
+\'a0\'a0 \'a0 \'a0 \'a0 \'a0 \'a0ENDCG \
+\'a0\'a0 \'a0 \'a0 \'a0\} \
+\'a0\'a0 \'a0\} \
+\} }
